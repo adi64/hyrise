@@ -3,6 +3,10 @@
 
 #include "concurrency/transaction_manager.hpp"
 #include "operators/import_binary.hpp"
+#include "logical_query_plan/abstract_lqp_node.hpp"
+#include "logical_query_plan/lqp_column_reference.hpp"
+#include "logical_query_plan/stored_table_node.hpp"
+#include "logical_query_plan/predicate_node.hpp"
 #include "sql/sql_pipeline.hpp"
 #include "sql/sql_query_cache.hpp"
 #include "sql/sql_query_operator.hpp"
@@ -43,6 +47,66 @@ int main() {
   auto importer = std::make_shared<opossum::ImportBinary>("group01_CUSTOMER.bin", "CUSTOMER");
   importer->execute();
   std::cout << "Table loaded.\n";
+
+
+
+
+
+  auto pipeline = std::make_shared<opossum::SQLPipeline>("select NAME, BALANCE from CUSTOMER as c1 inner join CUSTOMER as c2 on c1.LEVEL = c2.ID where LEVEL = 5 LIMIT 20");
+  auto lqp = pipeline->get_optimized_logical_plans();
+  auto nodes_todo = lqp;
+  while (!nodes_todo.empty()) {
+      auto lqp_node = nodes_todo.back();
+      nodes_todo.pop_back();
+
+      if (auto left_child = lqp_node->left_child()) {
+          nodes_todo.push_back(left_child);
+      }
+      if (auto right_child = lqp_node->right_child()) {
+          nodes_todo.push_back(right_child);
+      }
+
+      std::cout << "LQP node: " << lqp_node->description() << "\n";
+
+      switch (lqp_node->type()) {
+      case opossum::LQPNodeType::Predicate :
+      {
+          auto predicate_node = std::dynamic_pointer_cast<const opossum::PredicateNode>(lqp_node);
+          Assert(predicate_node, "LQP node is not actually a PredicateNode");
+          auto lqp_ref = predicate_node->column_reference();
+          std::cout << "column reference: " << lqp_ref.description() << "\n";
+          std::cout << "Column " << lqp_ref.original_column_id() << " of node " << lqp_ref.original_node() << "\n";
+          if (lqp_ref.original_node()) {
+              auto original_node = lqp_ref.original_node();
+              std::cout << "original node: " << original_node->description() << "\n";
+              auto original_columnID = original_node->find_output_column_id(lqp_ref);
+              if (original_columnID) {
+                std::cout << "column ID there: " << *original_columnID << "\n";
+              }
+              if (original_node->type() == opossum::LQPNodeType::StoredTable) {
+                  std::cout << "original node is StoredTable node\n";
+                  auto storedTable = std::dynamic_pointer_cast<const opossum::StoredTableNode>(original_node);
+                  opossum::Assert(storedTable, "failed dynamic cast");
+                  std::cout << "original table name: " << storedTable->table_name() << "\n";
+                  std::cout << "original column name: " << opossum::StorageManager::get().get_table(storedTable->table_name())->column_name(*original_columnID) << "\n";
+              }
+          }
+      }
+          break;
+      case opossum::LQPNodeType::Join :
+          // Probably interesting
+          break;
+      default:
+          // Not interesting
+          break;
+      }
+  }
+
+  return 1;
+
+
+
+
 
   constexpr unsigned int execution_count = 5;
 
