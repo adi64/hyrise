@@ -20,6 +20,8 @@ queryplan.png
 .lqp*.dot
 lqp*.png
 compile_times.txt
+CMakeLists.txt.user
+*.autosave
 
 # Ignore generated TPC{CH} tables.
 # Intentionally only for root dir, tests contain csv we check in

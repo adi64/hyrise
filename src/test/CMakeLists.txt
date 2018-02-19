@@ -103,6 +103,7 @@ set(
     storage/dictionary_column_test.cpp
     storage/encoded_column_test.cpp
     storage/group_key_index_test.cpp
+    storage/index_info_test.cpp
     storage/iterables_test.cpp
     storage/multi_column_index_test.cpp
     storage/compressed_vector_test.cpp
@@ -120,6 +121,12 @@ set(
     tasks/operator_task_test.cpp
     testing_assert.cpp
     testing_assert.hpp
+    tuning/greedy_selector_test.cpp
+    tuning/index/column_ref_test.cpp
+    tuning/index/index_evaluator_test.cpp
+    tuning/index/index_choice_test.cpp
+    tuning/index/index_operation_test.cpp
+    tuning/tuner_test.cpp
     utils/cuckoo_hashtable_test.cpp
     utils/numa_memory_resource_test.cpp
     utils/format_bytes_test.cpp

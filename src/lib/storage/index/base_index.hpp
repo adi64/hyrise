@@ -39,6 +39,19 @@ class BaseIndex : private Noncopyable {
   using Iterator = std::vector<ChunkOffset>::const_iterator;
 
   /**
+   * Predicts the memory consumption in MiB of creating an index with the specific index implementation <type>
+   * on a Chunk with the following statistics:
+   *
+   * rowCount - overall number of rows
+   * valueCount - number of distinct values
+   * bytesPerValue - (average) size of a single value in bytes
+   *
+   * If no prediction is possible, std::numeric_limits<float>::quiet_NaN() shall be returned.
+   */
+  static float predict_memory_consumption(ColumnIndexType type, ChunkOffset row_count, ChunkOffset value_count,
+                                          uint32_t value_bytes);
+
+  /**
    * Creates an index on all given columns. Since all indices are composite indices the order of
    * the provided columns matters. Creating two indices with the same columns, but in different orders
    * leads to very different indices.
@@ -106,6 +119,13 @@ class BaseIndex : private Noncopyable {
    */
   Iterator cend() const;
 
+  /**
+   * Returns the memory consumption of this Index in MiB
+   *
+   * If it can not be determined, numeric_limits<float>::quiet_NaN() should be returned.
+   */
+  float memory_consumption() const;
+
   ColumnIndexType type() const;
 
  protected:
@@ -118,6 +138,7 @@ class BaseIndex : private Noncopyable {
   virtual Iterator _cbegin() const = 0;
   virtual Iterator _cend() const = 0;
   virtual std::vector<std::shared_ptr<const BaseColumn>> _get_index_columns() const = 0;
+  virtual float _memory_consumption() const = 0;
 
  private:
   const ColumnIndexType _type;

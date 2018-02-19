@@ -17,6 +17,12 @@
 
 namespace opossum {
 
+float AdaptiveRadixTreeIndex::predict_memory_consumption(ChunkOffset row_count, ChunkOffset value_count,
+                                                         uint32_t value_bytes) {
+  // ToDo(anyone): If you use this index in combination with the Tuning subsystem, you need to properly implement this.
+  return std::numeric_limits<float>::quiet_NaN();
+}
+
 AdaptiveRadixTreeIndex::AdaptiveRadixTreeIndex(const std::vector<std::shared_ptr<const BaseColumn>>& index_columns)
     : BaseIndex{get_index_type_of<AdaptiveRadixTreeIndex>()},
       _index_column(std::dynamic_pointer_cast<const BaseDeprecatedDictionaryColumn>(index_columns.front())) {
@@ -56,6 +62,11 @@ BaseIndex::Iterator AdaptiveRadixTreeIndex::_upper_bound(const std::vector<AllTy
 BaseIndex::Iterator AdaptiveRadixTreeIndex::_cbegin() const { return _chunk_offsets.cbegin(); }
 
 BaseIndex::Iterator AdaptiveRadixTreeIndex::_cend() const { return _chunk_offsets.cend(); }
+
+float AdaptiveRadixTreeIndex::_memory_consumption() const {
+  // ToDo(anyone): If you use this index in combination with the Tuning subsystem, you need to properly implement this.
+  return std::numeric_limits<float>::quiet_NaN();
+}
 
 std::shared_ptr<ARTNode> AdaptiveRadixTreeIndex::_bulk_insert(
     const std::vector<std::pair<BinaryComparable, ChunkOffset>>& values) {
